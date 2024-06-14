@@ -1,13 +1,12 @@
+use colored::*;
 use std::{
-    env::{self, current_dir},
-    fs::{File, OpenOptions},
+    env::{self},
+    fs::File,
     io::Write,
 };
-
 mod operations;
-use operations::*;
-
 use dirs::home_dir;
+use operations::*;
 
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -22,20 +21,30 @@ fn main() -> std::io::Result<()> {
                 Ok(num) => {
                     //this means that input num == path idx in .toml file
                     //get_path_by_num(flag)
-                    OperationsController::get_one(&path, num);
+                    match OperationsController::get_one(&path, num) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            println!("Error: {} Error number {}", e, 99);
+                        }
+                    }
                 }
                 Err(_) => {
                     //match operations
                     if flag == "l" || flag == "list" {
-                        OperationsController::list_paths(&path);
+                        let _ = OperationsController::list_paths(&path);
                     } else if flag == "c" || flag == "clear" {
-                        OperationsController::clear_all(&path);
+                        let _ = OperationsController::clear_all(&path);
                     } else if flag == "s" || flag == "save" {
                         OperationsController::save_path(&path);
                     } else if flag == "change" {
-                        OperationsController::change_to(&path);
+                        let _ = OperationsController::change_to(&path);
                     } else if flag == "r" || flag == "remove" {
-                        OperationsController::remove_one(&path);
+                        match OperationsController::remove_one(&path) {
+                            Ok(_) => {
+                                println!("{}", "Path removed successfully!".green());
+                            }
+                            Err(e) => println!("{} {}", "Error:".red(), e),
+                        }
                     } else if flag == "h" || flag == "help" {
                         OperationsController::help();
                     } else {
@@ -50,11 +59,5 @@ fn main() -> std::io::Result<()> {
             file.write_all(b"[paths]")?;
         }
     }
-    //verify shapeshifter.conf existence
-
-    //create file if doesnt exist
-
-    //verify flags if succeded
-
     Ok(())
 }

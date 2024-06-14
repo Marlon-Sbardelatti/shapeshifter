@@ -1,12 +1,12 @@
+use colored::*;
+use std::fs;
 use std::{
-    env::{current_dir, set_current_dir},
-    fmt::format,
-    fs::{self, File, OpenOptions},
-    io::{BufRead, BufReader, Write},
+    env::current_dir,
+    fs::{File, OpenOptions},
+    io::{self, BufRead, BufReader, Write},
     path::PathBuf,
     process::Command,
 };
-use colored::*;
 use text_io::read;
 
 pub struct OperationsController;
@@ -19,6 +19,7 @@ impl OperationsController {
                 if let Some(last) = path_to_save.file_name().unwrap().to_str() {
                     let data = format!("\n{} = {:?}", last, &path_to_save);
                     file.write(data.as_bytes()).expect("failed to save path");
+                    println!("{}", "Path saved!".green());
                 }
             }
             Err(e) => {
@@ -68,7 +69,7 @@ impl OperationsController {
         for line in reader.lines() {
             let str = line.unwrap();
             if str != "[paths]" && str != "" {
-                println!("({}) - {}", count, str);
+                println!("({})  {}", count, str);
                 count += 1;
                 paths.push(str);
             }
@@ -83,20 +84,24 @@ impl OperationsController {
         Ok(())
     }
 
-    pub fn remove_one(path: &PathBuf) -> std::io::Result<()> {
-        Self::list_paths(path);
+    pub fn remove_one(path: &PathBuf) -> Result<(), io::Error> {
+        let _ = Self::list_paths(path);
         println!("");
         println!("Remove:");
-        let mut input: i32 = read!();
+        let input: i32 = read!();
 
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut count = 1;
         let mut paths = Vec::new();
+        let mut found = false;
 
         for line in reader.lines() {
             let str = line.unwrap();
             if str != "[paths]" && str != "" {
+                if count == input {
+                    found = true;
+                }
                 if count != input {
                     // println!("({}) - {}", count, str);
                     paths.push(str);
@@ -105,27 +110,32 @@ impl OperationsController {
             }
         }
 
-        Self::clear_all(path);
-        match OpenOptions::new().append(true).open(path) {
-            Ok(mut file) => {
-                for path in &paths {
-                    let data = format!("\n{}", path);
-                    file.write(data.as_bytes()).expect("failed to save path");
+        if found {
+            let _ = Self::clear_all(path);
+            match OpenOptions::new().append(true).open(path) {
+                Ok(mut file) => {
+                    for path in &paths {
+                        let data = format!("\n{}", path);
+                        file.write(data.as_bytes()).expect("failed to save path");
+                    }
+                    return Ok(());
                 }
-                println!("removed successfully");
-            }
-            Err(e) => {
-                println!(
-                    "could not remove path from shapeshifter.toml file, error: {}",
-                    e
-                );
+                Err(e) => {
+                    println!(
+                        "could not remove path from shapeshifter.toml file, error: {}",
+                        e
+                    );
+                }
             }
         }
 
-        Ok(())
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "Path number not found. Please select a valid path number from the list.",
+        ))
     }
 
-    pub fn get_one(path: &PathBuf, num: usize) -> std::io::Result<()> {
+    pub fn get_one(path: &PathBuf, num: usize) -> Result<(), io::Error> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut count = 1;
@@ -137,29 +147,63 @@ impl OperationsController {
                     let split = str.split("=").last().unwrap().trim();
                     let cleaned_path = split.trim_start_matches('"').trim_end_matches('"');
                     println!("{}", cleaned_path);
-                    break;
+                    return Ok(());
                 }
                 count += 1;
             }
         }
 
-        Ok(())
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            "Path number not found. Please select a valid path number from the list.",
+        ))
     }
 
     pub fn help() {
-        println!("{}         {}","Shapeshifter".green(), "Unleash the Power of Quick Shifts!\n");
-        println!("{} {}","Usage:".green().bold(), "shs".cyan());
-        println!("   {}               {}", "shs".cyan(), "Retrieve all saved paths, pipe them to fzf, and change directory after selection");
-        println!("   {}      {}\n", "shs + number".cyan(), "Navigate to the path saved at the specified number");
+        println!(
+            "{}         {}",
+            "Shapeshifter".green(),
+            "Unleash the Power of Quick Shifts!\n"
+        );
+        println!("{} {}", "Usage:".green().bold(), "shs".cyan());
+        println!(
+            "   {}               {}",
+            "shs".cyan(),
+            "Retrieve all saved paths, pipe them to fzf, and change directory after selection"
+        );
+        println!(
+            "   {}      {}\n",
+            "shs + number".cyan(),
+            "Navigate to the path saved at the specified number"
+        );
 
-        println!("\n{} {}\n","Usage:".green().bold(), "shs [command]".cyan());
+        println!("\n{} {}\n", "Usage:".green().bold(), "shs [command]".cyan());
         println!("{}", "Commands:".green().bold());
 
-        println!("   {}           {}", "help, h".cyan(), "List all commands available");
-        println!("   {}           {}", "list, l".cyan(), "List all saved paths");
-        println!("   {}           {}", "save, s".cyan(), "Save the current path");
-        println!("   {}          {}", "clear, c".cyan(), "Clear all saved paths");
-        println!("   {}         {}", "remove, r".cyan(), "Remove a specific path");
-
+        println!(
+            "   {}           {}",
+            "help, h".cyan(),
+            "List all commands available"
+        );
+        println!(
+            "   {}           {}",
+            "list, l".cyan(),
+            "List all saved paths"
+        );
+        println!(
+            "   {}           {}",
+            "save, s".cyan(),
+            "Save the current path"
+        );
+        println!(
+            "   {}          {}",
+            "clear, c".cyan(),
+            "Clear all saved paths"
+        );
+        println!(
+            "   {}         {}",
+            "remove, r".cyan(),
+            "Remove a specific path"
+        );
     }
 }
