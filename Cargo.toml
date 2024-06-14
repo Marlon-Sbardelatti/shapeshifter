@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 dirs = "5.0.1"
-
+text_io = "0.1.12"
