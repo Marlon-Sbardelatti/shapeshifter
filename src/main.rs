@@ -19,19 +19,25 @@ fn main() -> std::io::Result<()> {
     match File::open(&path) {
         Ok(_) => {
             match flag.parse::<usize>() {
-                Ok(_) => {
+                Ok(num) => {
                     //this means that input num == path idx in .toml file
                     //get_path_by_num(flag)
+                    OperationsController::get_one(&path, num);
                 }
                 Err(_) => {
                     //match operations
-
                     if flag == "l" || flag == "list" {
                         OperationsController::list_paths(&path);
                     } else if flag == "c" || flag == "clear" {
-
+                        OperationsController::clear_all(&path);
                     } else if flag == "s" || flag == "save" {
                         OperationsController::save_path(&path);
+                    } else if flag == "change" {
+                        OperationsController::change_to(&path);
+                    } else if flag == "r" || flag == "remove" {
+                        OperationsController::remove_one(&path);
+                    } else if flag == "h" || flag == "help" {
+                        OperationsController::help();
                     } else {
                         println!("Unknown command");
                     }

@@ -1,11 +1,12 @@
 use std::{
     env::{current_dir, set_current_dir},
-    fs::{File, OpenOptions},
+    fmt::format,
+    fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Write},
     path::PathBuf,
     process::Command,
 };
-
+use colored::*;
 use text_io::read;
 
 pub struct OperationsController;
@@ -26,7 +27,68 @@ impl OperationsController {
         }
     }
 
+    pub fn change_to(path: &PathBuf) -> Result<(), std::io::Error> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut paths = Vec::new();
+
+        for line in reader.lines() {
+            let str = line.unwrap();
+            if str != "[paths]" && str != "" {
+                paths.push(str);
+            }
+        }
+
+        let mut query = String::new();
+
+        for path in &paths {
+            let split = path.split("=").last().unwrap().trim();
+            let cleaned_path = split.trim_start_matches('"').trim_end_matches('"');
+            query.push_str(cleaned_path);
+            query.push_str(" ");
+        }
+
+        let c = format!("find {} -maxdepth 0 -type d | fzf", query);
+        Command::new("sh")
+            .arg("-c")
+            .arg(c)
+            .status()
+            .expect("cd command failed to start");
+
+        Ok(())
+    }
+
     pub fn list_paths(path: &PathBuf) -> Result<(), std::io::Error> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut count = 1;
+        let mut paths = Vec::new();
+        println!("");
+
+        for line in reader.lines() {
+            let str = line.unwrap();
+            if str != "[paths]" && str != "" {
+                println!("({}) - {}", count, str);
+                count += 1;
+                paths.push(str);
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn clear_all(path: &PathBuf) -> std::io::Result<()> {
+        OpenOptions::new().write(true).truncate(true).open(path)?;
+        fs::write(path, b"[paths]")?;
+        Ok(())
+    }
+
+    pub fn remove_one(path: &PathBuf) -> std::io::Result<()> {
+        Self::list_paths(path);
+        println!("");
+        println!("Remove:");
+        let mut input: i32 = read!();
+
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut count = 1;
@@ -35,44 +97,69 @@ impl OperationsController {
         for line in reader.lines() {
             let str = line.unwrap();
             if str != "[paths]" && str != "" {
-                println!("{} - {}", count, str);
+                if count != input {
+                    // println!("({}) - {}", count, str);
+                    paths.push(str);
+                }
                 count += 1;
-                paths.push(str);
             }
         }
 
-        println!("\nShift to: \n");
-        let mut idx: usize = read!();
-        // println!("{}", paths[idx - 1]);
-
-        while idx >= count {
-            println!("invalid number, try again: \n");
-            idx = read!();
+        Self::clear_all(path);
+        match OpenOptions::new().append(true).open(path) {
+            Ok(mut file) => {
+                for path in &paths {
+                    let data = format!("\n{}", path);
+                    file.write(data.as_bytes()).expect("failed to save path");
+                }
+                println!("removed successfully");
+            }
+            Err(e) => {
+                println!(
+                    "could not remove path from shapeshifter.toml file, error: {}",
+                    e
+                );
+            }
         }
-
-        println!("idx: {}", idx);
-        println!("count: {}", count);
-        println!("{}", paths[idx - 1]);
-
-        let splited_path = paths[idx - 1].split("=").last().unwrap().trim();
-        let cleaned_path = splited_path.trim_start_matches('"').trim_end_matches('"');
-        Self::change_dir(PathBuf::from(cleaned_path));
 
         Ok(())
     }
 
-    pub fn change_dir(path: PathBuf) -> std::io::Result<()> {
-        // set_current_dir(path)?;
-        let c = format!("cd {}", path.to_string_lossy());
+    pub fn get_one(path: &PathBuf, num: usize) -> std::io::Result<()> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut count = 1;
 
+        for line in reader.lines() {
+            let str = line.unwrap();
+            if str != "[paths]" && str != "" {
+                if count == num {
+                    let split = str.split("=").last().unwrap().trim();
+                    let cleaned_path = split.trim_start_matches('"').trim_end_matches('"');
+                    println!("{}", cleaned_path);
+                    break;
+                }
+                count += 1;
+            }
+        }
 
-        Command::new("sh")
-            .arg("-c")
-            .arg(format!(". shapeshifter.sh {}", path.to_string_lossy()))
-            .status()
-            .expect("cd command failed to start");
-
-        // println!("Current directory changed to: {:?}", current_dir()?);
         Ok(())
+    }
+
+    pub fn help() {
+        println!("{}         {}","Shapeshifter".green(), "Unleash the Power of Quick Shifts!\n");
+        println!("{} {}","Usage:".green().bold(), "shs".cyan());
+        println!("   {}               {}", "shs".cyan(), "Retrieve all saved paths, pipe them to fzf, and change directory after selection");
+        println!("   {}      {}\n", "shs + number".cyan(), "Navigate to the path saved at the specified number");
+
+        println!("\n{} {}\n","Usage:".green().bold(), "shs [command]".cyan());
+        println!("{}", "Commands:".green().bold());
+
+        println!("   {}           {}", "help, h".cyan(), "List all commands available");
+        println!("   {}           {}", "list, l".cyan(), "List all saved paths");
+        println!("   {}           {}", "save, s".cyan(), "Save the current path");
+        println!("   {}          {}", "clear, c".cyan(), "Clear all saved paths");
+        println!("   {}         {}", "remove, r".cyan(), "Remove a specific path");
+
     }
 }

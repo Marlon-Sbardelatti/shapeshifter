@@ -1,8 +1,10 @@
 [package]
-name = "shs"
+name = "shapeshifter"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 dirs = "5.0.1"
 text_io = "0.1.12"
+colored = "2.1.0"
+
