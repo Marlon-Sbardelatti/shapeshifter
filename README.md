@@ -10,8 +10,6 @@ https://github.com/Marlon-Sbardelatti/shapeshifter/assets/117592329/eced1fe6-47f
 
 
 
-
-
 ## Features
 - Quick Navigation: Save directory paths as markers and switch between them with a single command.
 - Simple CLI Interface: Easy-to-use commands for managing and navigating between saved paths.
@@ -113,48 +111,18 @@ source ~/.bashrc
 ## Usage
 To use Shapeshifter, you can use the following commands:
 
-### `shs`
+## Commands
 
-Display all saved paths using `fzf` for selection. After selection, change to the selected directory.
+| Command             | Description                                                                      |
+|---------------------|----------------------------------------------------------------------------------|
+| `shs`               | Display all saved paths using `fzf` for selection. Change to selected directory. |
+| `shs "number"`      | Change to the directory corresponding to the number provided.                     |
+| `shs list` or `shs l` | List all saved paths.                                                           |
+| `shs save` or `shs s` | Save the current directory path.                                                |
+| `shs remove` or `shs r` | Remove a saved path by selecting its number.                                    |
+| `shs clear` or `shs c` | Delete all saved paths.                                                         |
+| `shs help` or `shs h`  | Display help for all commands.                                                  |
 
-```bash
- shs
-```
-
-### `shs "number"`
-Change to the directory corresponding to the number provided.
-```bash
- shs 2
-```
-### `shs list` or `shs l`
-List all saved paths.
-```bash
- shs list
-```
-
-### `shs save` or `shs s`
-Save the current directory path.
-```bash
- shs save
-```
-
-### `shs remove` or `shs r`
-Prompt the user to type a number and remove the corresponding saved path.
-```bash
- shs remove
-```
-
-### `shs clear` or `shs c`
-Delete all saved paths.
-```bash
- shs clear
-```
-
-### `shs help` or `shs h`
-Display help for all commands.
-```bash
- shs help
-```
 
 
 ## Contributing
