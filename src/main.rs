@@ -57,6 +57,7 @@ fn main() -> std::io::Result<()> {
             //.TOML file created
             let mut file = File::create_new(path)?;
             file.write_all(b"[paths]")?;
+            main();
         }
     }
     Ok(())
