@@ -17,8 +17,8 @@ https://github.com/Marlon-Sbardelatti/shapeshifter/assets/117592329/eced1fe6-47f
 - Simple CLI Interface: Easy-to-use commands for managing and navigating between saved paths.
 
 ## Table of Contents
-- [Installation](#installation)
 - [Prerequesites](#prerequesites)
+- [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
