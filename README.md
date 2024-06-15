@@ -96,16 +96,11 @@ else
         shapeshifter h 
     else
         cd $(shapeshifter change)
-        # output=$(shapeshifter change)
-
-            # if [ $? -ne 0 ]; then
-            #     # Execute your command here
-            #     cd $(shapeshifter change)
-            # fi
     fi
     fi
 
 }
+
 ```
 5. Source .bashrc file:
 ```bash
