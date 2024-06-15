@@ -34,9 +34,14 @@ https://github.com/Marlon-Sbardelatti/shapeshifter/assets/117592329/eced1fe6-47f
 
 ### Installing fzf and find
 
-#### On Linux (using APT package manager):
+#### On Linux:
+#### Debian based distros: 
 ```bash
 sudo apt-get install fzf findutils
+```
+#### Arch: 
+```bash
+yay -S fzf findutils
 ```
 #### On macOS (using Homebrew):
 ```bash
