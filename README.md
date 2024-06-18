@@ -64,7 +64,7 @@ cargo build --release
 ```
 3. Copy the Shapeshifter executable to /usr/local/bin:
 ```bash
-sudo cp target/release/jargo /usr/local/bin
+sudo cp target/release/shapeshifter /usr/local/bin
 ```
 4. Copy the funcition to your .bashrc:
 - OBS: We won't directly use the shapeshifter command; instead, we'll create a bash function that acts as an alias, and this function will call our Rust binary. That's why we need this function
